@@ -9,7 +9,7 @@
 import logging
 
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import BufferedInputFile, Message
 from aiogram.filters import Command
 
 from services import task_service, csv_service
@@ -54,9 +54,12 @@ async def cmd_list_csv(message: Message) -> None:
         csv_buffer = csv_service.generate_csv(tasks)
 
         # Отправляем CSV как документ в чат
-        await message.answer_document(
-            document=csv_buffer,
+        document = BufferedInputFile(
+            file=csv_buffer.getvalue(),
             filename=csv_service.CSV_FILENAME,
+        )
+        await message.answer_document(
+            document=document,
             caption="📊 Экспорт задач в CSV",
         )
         logger.info("CSV отправлен в чат %s", message.chat.title)
