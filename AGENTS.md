@@ -40,7 +40,9 @@ Before coding, read:
 - The code MUST be well structured, human readable, and comply with PEP8 requirements.
 - Use detailed comments in the code.
 
-## Offer testing commands after current task is done
+## Testing routine after current task is done:
+- Use syntax and linter checking for all created/modified files
+- Offer/create testing commands/utils after current task is done for testing basic functioning
 
 ## Output format
 - Plan → patch-style changes → commands to run. Answer in Russian

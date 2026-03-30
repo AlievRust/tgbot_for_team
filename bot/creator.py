@@ -12,7 +12,6 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
-from aiogram import F
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ def create_bot() -> tuple[Bot, Dispatcher]:
     Если токен не найден — выбрасывает ValueError.
 
     Returns:
-        tuple[Bot, Dispatcher]: Кортеж (бот, диспетчер) для дальнейшей настройки.
+        tuple[Bot, Dispatcher]: Кортеж (бот, диспетчер).
     """
     # Чтение токена из окружения (загруженного через python-dotenv в main.py)
     token = os.getenv("BOT_TOKEN")
@@ -40,7 +39,6 @@ def create_bot() -> tuple[Bot, Dispatcher]:
     # Создаём бота с настройками по умолчанию
     bot = Bot(
         token=token,
-        # DefaultBotProperties позволяет задать парсинг по умолчанию
         default=DefaultBotProperties(parse_mode="HTML"),
     )
 

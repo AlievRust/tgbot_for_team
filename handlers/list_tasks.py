@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("list"), F.chat_type.in_({"group", "supergroup"}))
+@router.message(Command("list"), F.chat.type.in_({"group", "supergroup"}))
 async def cmd_list(message: Message) -> None:
     """
     Обработчик команды /list в групповом чате.
@@ -30,7 +30,7 @@ async def cmd_list(message: Message) -> None:
 
     Фильтры:
         Command("list") — реагирует только на /list
-        F.chat_type.in_({"group", "supergroup"}) — только в группах
+        F.chat.type.in_({"group", "supergroup"}) — только в группах
 
     Args:
         message: Объект входящего сообщения Telegram.
@@ -51,4 +51,4 @@ async def cmd_list(message: Message) -> None:
         await message.answer(formatted_text)
     except Exception as e:
         logger.error("Ошибка при получении списка задач: %s", e)
-        await message.answer("❌ Произошла ошибка при загрузке задач. Попробуйте позже.")
+        await message.answer("❌ Ошибка загрузки задач. Попробуйте позже.")

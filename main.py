@@ -14,7 +14,6 @@
 
 import asyncio
 import logging
-import os
 import sys
 
 from dotenv import load_dotenv
@@ -66,11 +65,14 @@ async def main() -> None:
     dispatcher.include_router(list_tasks_router)   # /list
     dispatcher.include_router(export_csv_router)   # /list_csv
 
+    # Удаляем webhook, если был установлен ранее
+    # (иначе polling не запустится: TelegramConflictError)
+    await bot.delete_webhook(drop_pending_updates=True)
+
     logger.info("Роутеры зарегистрированы, запуск polling...")
 
     # 6. Запускаем long-polling
-    # drop_pending_updates=True — пропускаем обновления, накопленные пока бот был выключен
-    await dispatcher.start_polling(bot, drop_pending_updates=True)
+    await dispatcher.start_polling(bot)
 
 
 if __name__ == "__main__":

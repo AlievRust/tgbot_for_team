@@ -2,7 +2,7 @@
 Модуль генерации CSV-файла из списка задач.
 
 Содержит функцию:
-- generate_csv(): создаёт CSV в памяти (BytesIO) с UTF-8 BOM для Excel-совместимости.
+- generate_csv(): CSV в памяти (BytesIO), UTF-8 BOM
 """
 
 import csv

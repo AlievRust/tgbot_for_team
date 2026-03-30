@@ -26,17 +26,21 @@ WELCOME_TEXT = (
 )
 
 
-@router.message(CommandStart(), F.chat_type.in_({"group", "supergroup"}))
+@router.message(CommandStart(), F.chat.type.in_({"group", "supergroup"}))
 async def cmd_start(message: Message) -> None:
     """
     Обработчик команды /start в групповом чате.
 
     Фильтры:
         CommandStart() — реагирует только на /start
-        F.chat_type.in_({"group", "supergroup"}) — только в группах
+        F.chat.type.in_({"group", "supergroup"}) — только в группах
 
     Args:
         message: Объект входящего сообщения Telegram.
     """
-    logger.info("/start от пользователя %s в чате %s", message.from_user.full_name, message.chat.title)
+    logger.info(
+        "/start от %s в чате %s",
+        message.from_user.full_name,
+        message.chat.title,
+    )
     await message.answer(WELCOME_TEXT)

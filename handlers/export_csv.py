@@ -1,4 +1,4 @@
-"\"\""
+"""
 Обработчик команды /list_csv — экспорт всех задач в CSV-файл.
 
 Получает задачи из БД через сервисный слой, генерирует CSV-файл в памяти
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("list_csv"), F.chat_type.in_({"group", "supergroup"}))
+@router.message(Command("list_csv"), F.chat.type.in_({"group", "supergroup"}))
 async def cmd_list_csv(message: Message) -> None:
     """
     Обработчик команды /list_csv в групповом чате.
@@ -30,7 +30,7 @@ async def cmd_list_csv(message: Message) -> None:
 
     Фильтры:
         Command("list_csv") — реагирует только на /list_csv
-        F.chat_type.in_({"group", "supergroup"}) — только в группах
+        F.chat.type.in_({"group", "supergroup"}) — только в группах
 
     Args:
         message: Объект входящего сообщения Telegram.
@@ -47,7 +47,7 @@ async def cmd_list_csv(message: Message) -> None:
 
         # Если задач нет — сообщаем об этом без отправки файла
         if not tasks:
-            await message.answer("📋 Список задач пуст — нечего экспортировать.")
+            await message.answer("📋 Список задач пуст — нечего экспорт..")
             return
 
         # Генерируем CSV в памяти (BytesIO с UTF-8 BOM)
@@ -63,5 +63,4 @@ async def cmd_list_csv(message: Message) -> None:
 
     except Exception as e:
         logger.error("Ошибка при экспорте задач в CSV: %s", e)
-        await message.answer("❌ Произошла ошибка при экспорте. Попробуйте позже.")
-"
+        await message.answer("❌ Ошибка экспорта. Попробуйте позже.")

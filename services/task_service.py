@@ -2,7 +2,7 @@
 Модуль бизнес-логики работы с задачами.
 
 Содержит функции:
-- create_task(): формирует created_at (GMT+3) и делегирует запись в БД
+- create_task(): формирует created_at (GMT+3), запись в БД
 - fetch_all_tasks(): получает все задачи из БД
 - format_tasks_list(): форматирует список задач для вывода в чат
 """
@@ -32,10 +32,14 @@ async def create_task(text: str, user: str) -> int:
         int: ID созданной задачи.
     """
     # Текущее время в часовом поясе GMT+3, формат ISO 8601
-    created_at = datetime.now(TIMEZONE).isoformat()
+    created_at = datetime.now(
+        TIMEZONE
+    ).isoformat()
 
     # Делегируем запись в БД модулю queries
-    task_id = await queries.add_task(text=text, user=user, created_at=created_at)
+    task_id = await queries.add_task(
+        text=text, user=user, created_at=created_at
+    )
     logger.info("Задача #%d создана: '%s' от %s", task_id, text, user)
     return task_id
 

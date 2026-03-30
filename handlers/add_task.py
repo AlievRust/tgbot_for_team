@@ -31,16 +31,17 @@ class AddTask(StatesGroup):
     waiting_for_text = State()
 
 
-@router.message(Command("add"), F.chat_type.in_({"group", "supergroup"}))
+@router.message(Command("add"), F.chat.type.in_({"group", "supergroup"}))
 async def cmd_add(message: Message, state: FSMContext) -> None:
     """
     Первый шаг: пользователь отправил /add.
 
-    Устанавливает FSM в состояние waiting_for_text и просит ввести текст задачи.
+    Устанавливает FSM в состояние waiting_for_text,
+    просит ввести текст задачи.
 
     Фильтры:
         Command("add") — реагирует только на /add
-        F.chat_type.in_({"group", "supergroup"}) — только в группах
+        F.chat.type.in_({"group", "supergroup"}) — только в группах
 
     Args:
         message: Объект входящего сообщения Telegram.
@@ -49,35 +50,42 @@ async def cmd_add(message: Message, state: FSMContext) -> None:
     # Устанавливаем состояние — теперь бот ждёт текст задачи
     await state.set_state(AddTask.waiting_for_text)
     logger.info(
-        "/add от %s в чате %s — ожидание текста задачи",
+        "/add от %s в чате %s — ожидание текста",
         message.from_user.full_name,
         message.chat.title,
     )
     await message.answer("✏️ Введите текст задачи:")
 
 
-@router.message(AddTask.waiting_for_text, F.chat_type.in_({"group", "supergroup"}))
+@router.message(
+    AddTask.waiting_for_text,
+    F.chat.type.in_({"group", "supergroup"}),
+)
 async def process_task_text(message: Message, state: FSMContext) -> None:
     """
     Второй шаг: пользователь отправил текст задачи.
 
-    Проверяет, что текст не пустой, сохраняет задачу в БД и сбрасывает FSM.
+    Проверяет текст, сохраняет задачу в БД,
+    сбрасывает FSM.
 
     Фильтры:
         AddTask.waiting_for_text — только если FSM в этом состоянии
-        F.chat_type.in_({"group", "supergroup"}) — только в группах
+        F.chat.type.in_({"group", "supergroup"}) — только в группах
 
     Args:
         message: Объект входящего сообщения с текстом задачи.
         state: Контекст FSM для сброса состояния.
     """
-    # Получаем текст задачи, убираем лишние пробелы по краям
+    # Текст задачи, убираем лишние пробелы
     task_text = message.text.strip() if message.text else ""
 
     # Валидация: текст не должен быть пустым
     if not task_text:
-        logger.warning("Пустой текст задачи от %s", message.from_user.full_name)
-        await message.answer("❌ Текст задачи не может быть пустым. Попробуйте ещё раз:")
+        logger.warning("Пустой текст от %s", message.from_user.full_name)
+        await message.answer(
+            "❌ Текст не может быть пустым."
+            " Попробуйте ещё раз:"
+        )
         return
 
     # Определяем имя пользователя: username если есть, иначе display name
@@ -95,7 +103,7 @@ async def process_task_text(message: Message, state: FSMContext) -> None:
         await message.answer(f"✅ Задача #{task_id} добавлена: {task_text}")
     except Exception as e:
         logger.error("Ошибка при сохранении задачи: %s", e)
-        await message.answer("❌ Произошла ошибка при сохранении задачи. Попробуйте позже.")
+        await message.answer("❌ Ошибка сохранения задачи. Попробуйте позже.")
     finally:
-        # Всегда сбрасываем FSM, чтобы бот не «застрял» в состоянии ожидания
+        # Сбрасываем FSM, чтобы бот не застрял
         await state.clear()
