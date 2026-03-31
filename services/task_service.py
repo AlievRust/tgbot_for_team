@@ -2,7 +2,7 @@
 Модуль бизнес-логики работы с задачами.
 
 Содержит функции:
-- create_task(): формирует created_at (GMT+3), запись в БД
+- create_task(): формирует created_at (GMT+3, только дата), запись в БД
 - fetch_all_tasks(): получает все задачи из БД
 - get_task(): получает задачу по ID
 - update_task_field(): обновляет указанное поле задачи
@@ -30,7 +30,7 @@ _MANUAL_STATUSES = {"в работе", "выполнено"}
 
 async def create_task(text: str, user: str, chat_id: str) -> int:
     """
-    Создаёт новую задачу: формирует timestamp и сохраняет в БД.
+    Создаёт новую задачу: формирует дату создания и сохраняет в БД.
 
     Args:
         text: Текст задачи (не пустой).
@@ -40,8 +40,8 @@ async def create_task(text: str, user: str, chat_id: str) -> int:
     Returns:
         int: ID созданной задачи.
     """
-    # Текущее время в часовом поясе GMT+3, формат ISO 8601
-    created_at = datetime.now(TIMEZONE).isoformat()
+    # Текущая дата в часовом поясе GMT+3, формат YYYY-MM-DD
+    created_at = datetime.now(TIMEZONE).strftime("%Y-%m-%d")
 
     # Делегируем запись в БД модулю queries
     task_id = await queries.add_task(
@@ -107,7 +107,7 @@ def format_tasks_list(tasks: list[dict[str, Optional[str | int]]]) -> str:
     Форматирует список задач в текст для отправки в чат.
 
     Формат каждой задачи:
-        1. Текст задачи — @user, 2024-01-15 14:30
+        1. Текст задачи — @user, 2024-01-15
            📌 Ответственный: @ivan | 📅 Дедлайн: 2024-01-20 | Статус: в работе
 
     Поля ответственного, дедлайна и статуса выводятся только если заданы.
@@ -127,10 +127,10 @@ def format_tasks_list(tasks: list[dict[str, Optional[str | int]]]) -> str:
         task_id = task["id"]
         text = task["text"]
         user = task["user"]
-        # created_at хранится в ISO 8601, берём только дату и время до минут
-        created_at = str(task["created_at"])[:16]
+        # created_at хранится как дата YYYY-MM-DD
+        created_at = str(task["created_at"])
 
-        # Основная строка: ID. текст — @user, дата время
+        # Основная строка: ID. текст — @user, дата
         line = f"{task_id}. {text} — {user}, {created_at}"
         lines.append(line)
 

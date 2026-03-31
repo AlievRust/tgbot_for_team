@@ -21,6 +21,10 @@ CSV_HEADERS = [
     "assignee", "deadline", "status",
 ]
 
+# Разделитель полей: точка с запятой для корректного открытия
+# в Excel с русской локалью (запятая воспринимается как разделитель разрядов)
+CSV_DELIMITER = ";"
+
 
 def generate_csv(tasks: list[dict[str, Optional[str | int]]]) -> io.BytesIO:
     """
@@ -29,7 +33,7 @@ def generate_csv(tasks: list[dict[str, Optional[str | int]]]) -> io.BytesIO:
     CSV-формат:
     - Кодировка: UTF-8 с BOM (маркер байтового порядка)
       — обеспечивает корректное отображение кириллицы в Excel
-    - Разделитель: запятая (стандарт CSV)
+    - Разделитель: точка с запятой (для Excel с русской локалью)
     - Первая строка: заголовки колонок
     - Дополнительные колонки: assignee, deadline, status
 
@@ -43,8 +47,10 @@ def generate_csv(tasks: list[dict[str, Optional[str | int]]]) -> io.BytesIO:
     # Создаём текстовый буфер для записи CSV
     text_buffer = io.StringIO()
 
-    # Пишем CSV с заголовками
-    writer = csv.DictWriter(text_buffer, fieldnames=CSV_HEADERS)
+    # Пишем CSV с заголовками и разделителем ';'
+    writer = csv.DictWriter(
+        text_buffer, fieldnames=CSV_HEADERS, delimiter=CSV_DELIMITER
+    )
     writer.writeheader()
 
     # Формируем строки, оставляя пустые значения для отсутствующих полей
