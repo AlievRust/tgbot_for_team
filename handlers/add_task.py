@@ -17,7 +17,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from services import task_service
+from services import task_service, member_service
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ async def cmd_add(message: Message, state: FSMContext) -> None:
     Первый шаг: пользователь отправил /add.
 
     Устанавливает FSM в состояние waiting_for_text,
-    просит ввести текст задачи.
+    просит ввести текст задачи. Трекает участника.
 
     Фильтры:
         Command("add") — реагирует только на /add
@@ -47,6 +47,9 @@ async def cmd_add(message: Message, state: FSMContext) -> None:
         message: Объект входящего сообщения Telegram.
         state: Контекст FSM для управления состояниями.
     """
+    # Трекаем участника для накопления списка members
+    await member_service.ensure_tracked(message)
+
     # Устанавливаем состояние — теперь бот ждёт текст задачи
     await state.set_state(AddTask.waiting_for_text)
     logger.info(
@@ -65,7 +68,7 @@ async def process_task_text(message: Message, state: FSMContext) -> None:
     """
     Второй шаг: пользователь отправил текст задачи.
 
-    Проверяет текст, сохраняет задачу в БД,
+    Проверяет текст, сохраняет задачу в БД (с chat_id),
     сбрасывает FSM.
 
     Фильтры:
@@ -91,14 +94,20 @@ async def process_task_text(message: Message, state: FSMContext) -> None:
     # Определяем имя пользователя: username если есть, иначе display name
     user = message.from_user.username or message.from_user.full_name
 
+    # ID чата для привязки задачи
+    chat_id = str(message.chat.id)
+
     try:
-        # Сохраняем задачу через сервисный слой
-        task_id = await task_service.create_task(text=task_text, user=user)
+        # Сохраняем задачу через сервисный слой (с привязкой к чату)
+        task_id = await task_service.create_task(
+            text=task_text, user=user, chat_id=chat_id
+        )
         logger.info(
-            "Задача #%d создана: '%s' от %s",
+            "Задача #%d создана: '%s' от %s в чате %s",
             task_id,
             task_text,
             user,
+            chat_id,
         )
         await message.answer(f"✅ Задача #{task_id} добавлена: {task_text}")
     except Exception as e:

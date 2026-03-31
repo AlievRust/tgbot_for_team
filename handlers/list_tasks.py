@@ -12,7 +12,7 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command
 
-from services import task_service
+from services import task_service, member_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,8 @@ async def cmd_list(message: Message) -> None:
     """
     Обработчик команды /list в групповом чате.
 
-    Получает все задачи из БД, форматирует и отправляет в чат.
+    Трекает участника, получает все задачи из БД,
+    форматирует и отправляет в чат.
     Если список пуст — отправляет соответствующее сообщение.
 
     Фильтры:
@@ -40,6 +41,9 @@ async def cmd_list(message: Message) -> None:
         message.from_user.full_name,
         message.chat.title,
     )
+
+    # Трекаем участника для накопления списка members
+    await member_service.ensure_tracked(message)
 
     try:
         # Получаем все задачи через сервисный слой

@@ -11,6 +11,8 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 
+from services import member_service
+
 logger = logging.getLogger(__name__)
 
 # Создаём роутер для этого обработчика
@@ -22,7 +24,8 @@ WELCOME_TEXT = (
     "<strong>Доступные команды:</strong>\n"
     "/add — добавить задачу\n"
     "/list — показать все задачи\n"
-    "/list_csv — экспортировать задачи в CSV"
+    "/list_csv — экспортировать задачи в CSV\n"
+    "/edit — редактировать задачу (ответственный, дедлайн, статус)"
 )
 
 
@@ -30,6 +33,8 @@ WELCOME_TEXT = (
 async def cmd_start(message: Message) -> None:
     """
     Обработчик команды /start в групповом чате.
+
+    Трекает участника (для формирования списка при /edit assignee).
 
     Фильтры:
         CommandStart() — реагирует только на /start
@@ -43,4 +48,8 @@ async def cmd_start(message: Message) -> None:
         message.from_user.full_name,
         message.chat.title,
     )
+
+    # Трекаем участника для накопления списка members
+    await member_service.ensure_tracked(message)
+
     await message.answer(WELCOME_TEXT)

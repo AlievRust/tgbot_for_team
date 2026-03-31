@@ -15,8 +15,11 @@ logger = logging.getLogger(__name__)
 # Имя файла для экспорта
 CSV_FILENAME = "tasks.csv"
 
-# Заголовки колонок в CSV
-CSV_HEADERS = ["id", "text", "user", "created_at"]
+# Заголовки колонок в CSV (расширенные)
+CSV_HEADERS = [
+    "id", "text", "user", "created_at",
+    "assignee", "deadline", "status",
+]
 
 
 def generate_csv(tasks: list[dict[str, Optional[str | int]]]) -> io.BytesIO:
@@ -28,9 +31,10 @@ def generate_csv(tasks: list[dict[str, Optional[str | int]]]) -> io.BytesIO:
       — обеспечивает корректное отображение кириллицы в Excel
     - Разделитель: запятая (стандарт CSV)
     - Первая строка: заголовки колонок
+    - Дополнительные колонки: assignee, deadline, status
 
     Args:
-        tasks: Список словарей с ключами id, text, user, created_at.
+        tasks: Список словарей с полями задачи.
 
     Returns:
         io.BytesIO: Поток байтов с CSV-данными.
@@ -42,7 +46,19 @@ def generate_csv(tasks: list[dict[str, Optional[str | int]]]) -> io.BytesIO:
     # Пишем CSV с заголовками
     writer = csv.DictWriter(text_buffer, fieldnames=CSV_HEADERS)
     writer.writeheader()
-    writer.writerows(tasks)
+
+    # Формируем строки, оставляя пустые значения для отсутствующих полей
+    for task in tasks:
+        row = {
+            "id": task.get("id", ""),
+            "text": task.get("text", ""),
+            "user": task.get("user", ""),
+            "created_at": task.get("created_at", ""),
+            "assignee": task.get("assignee") or "",
+            "deadline": task.get("deadline") or "",
+            "status": task.get("status") or "",
+        }
+        writer.writerow(row)
 
     # Получаем строку с CSV-данными
     csv_string = text_buffer.getvalue()
